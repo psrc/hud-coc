@@ -1,0 +1,90 @@
+---
+title: "HUD CoC Explorer"
+format: html
+editor: visual
+---
+
+## Read Data
+
+
+```{r setup}
+library(openxlsx)
+library(tidyverse)
+library(DT)
+
+filename <- 'System-Performance-Measures-Data.xlsx'
+sheet_names <- getSheetNames(filename)
+```
+
+## Analyze column names
+
+```{r}
+# analyze column names
+all_colnames <- map(sheet_names, ~read.xlsx(filename, sheet = .x, startRow = 2) |> colnames())
+names(all_colnames) <- paste0("yr", sheet_names)
+```
+
+```{r}
+imap(all_colnames, ~length(.x))
+
+```
+### 2015-2017
+```{r 2015 to 2017}
+
+cn01 <- all_colnames[1:3]
+cn01_df <- cn01 |> as_tibble()
+
+cn01_df <- cn01_df |> 
+  rowwise() |> 
+  mutate(equal = length(unique(c(yr2015, yr2016, yr2017))))
+
+cn01_df_diff <- cn01_df |> 
+  filter(equal > 1) |> 
+  select(equal, everything())
+
+# write.xlsx(cn01_df_diff, "yr2015-17_colnames_diff.xlsx")
+
+datatable(cn01_df_diff)
+
+```
+
+```{r}
+imap(cn01_df |> select(starts_with("yr")), ~print(which(.x == "Total.HMIS.Count")))
+```
+
+### 2018
+```{r 2018}
+
+cn02 <- all_colnames[4]
+cn02_df <- cn02 |> as_tibble()
+
+imap(cn02_df |> select(starts_with("yr")), ~print(which(.x == "Total.HMIS.Count")))
+
+```
+
+### 2019-2023
+```{r 2019 to 2023}
+cn03 <- all_colnames[5:9]
+cn03_df <- cn03 |> as_tibble()
+
+cn03_df <- cn03_df |> 
+  rowwise() |> 
+  mutate(equal = length(unique(c(yr2019, yr2020, yr2021, yr2022, yr2023))))
+
+cn03_df_diff <- cn03_df |> 
+  filter(equal > 1) |> 
+  select(equal, everything())
+
+datatable(cn03_df_diff)
+
+# write.xlsx(cn03_df_diff, "yr2019-23_colnames_diff.xlsx")
+```
+
+
+```{r Total HMIS Count}
+
+# which(cn03_df$yr2019 == "Total.HMIS.Count") 
+imap(cn03_df |> select(starts_with("yr")), ~print(which(.x == "Total.HMIS.Count")))
+
+```
+
